@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#f2f2f7">
+<title>DDNS-RS</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 76 76'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%237ec8ff'/%3E%3Cstop offset='1' stop-color='%23007aff'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='76' height='76' rx='20' fill='url(%23g)'/%3E%3Cg transform='translate(14 14)' fill='none' stroke='%23fff' stroke-width='3'%3E%3Ccircle cx='24' cy='24' r='17'/%3E%3Cpath d='M7 24h34M24 7c9 9 9 25 0 34M24 7c-9 9-9 25 0 34'/%3E%3C/g%3E%3C/svg%3E">
+<link rel="stylesheet" href="/index.css">
+</head>
+<body>
+
+<div id="login" class="login view">
+<h1 class="name" id="login-name">DDNS-RS</h1>
+<select id="lg-lang" hidden></select>
+<input type="password" id="login-pass" placeholder="密码">
+<input type="password" id="login-pass2" placeholder="确认密码" hidden>
+<button class="btn" id="login-btn">登录</button>
+</div>
+
+<div id="app" class="app view" hidden>
+<main class="main">
+
+<section id="tab-status" class="panel">
+<div class="card">
+<div class="card-title" data-i18n="st.overview">概览</div>
+<div class="row"><span class="label" data-i18n="st.state">运行状态</span><span class="value" id="ov-state">-</span></div>
+<div class="row"><span class="label" data-i18n="st.lastRun">最近更新</span><span class="value" id="ov-run">-</span></div>
+<div class="row"><span class="label" data-i18n="st.count">任务数量</span><span class="value" id="ov-count">-</span></div>
+</div>
+<div id="st-entries"></div>
+<div class="bar"><button class="btn btn-block" id="st-run" data-i18n="st.runNow">立即更新</button></div>
+<div class="card">
+<div class="log-head"><div class="card-title" data-i18n="st.logs">日志</div><button class="log-clear" id="st-clear" data-i18n="st.clear">清空</button></div>
+<div class="logs" id="st-logs"></div>
+</div>
+<div class="card">
+<div class="card-title" data-i18n="st.support">支持</div>
+<button class="entry" id="st-donate"><span data-i18n="st.donate">支持开发</span><svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button>
+</div>
+</section>
+
+<section id="tab-tasks" class="panel" hidden>
+<div class="bar"><span class="label" data-i18n="tk.title">解析任务</span><button class="btn" id="tk-add" data-i18n="tk.add">新增任务</button></div>
+<div id="tk-list"></div>
+</section>
+
+<section id="tab-settings" class="panel" hidden>
+<div class="card">
+<div class="card-title" data-i18n="se.site">站点</div>
+<button class="entry" id="se-pwd"><span data-i18n="se.changePwd">修改密码</span><svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button>
+<button class="entry" id="se-title"><span data-i18n="se.title">网站标题</span><svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button>
+<div class="sep"></div>
+<div class="field"><span class="label" data-i18n="se.lang">语言</span><select id="se-lang"></select></div>
+</div>
+<div class="card">
+<div class="card-title" data-i18n="se.service">服务</div>
+<div class="field"><span class="label" data-i18n="se.port">端口</span><input id="se-port" type="number" min="1" max="65535"></div>
+<div class="sep"></div>
+<div class="field"><span class="label" data-i18n="se.tokenTtl">自动登出</span><input id="se-ttl" type="number" min="1" data-i18n-ph="se.ttlPh" placeholder="分钟"></div>
+<div class="hint" data-i18n="se.ttlHint">设置自动退出登录的时间，单位分钟</div>
+<div class="sep"></div>
+<div class="field"><span class="label" data-i18n="se.lan">禁止公网</span><span style="flex:1"></span><button id="se-lan" class="mod-toggle"></button></div>
+<div class="hint" data-i18n="se.lanHint">开启后仅允许本机与局域网访问</div>
+<div class="btn-row" id="se-bar" hidden><button class="btn-outline" id="se-cancel" data-i18n="cancel">取消</button><button class="btn" id="se-save" data-i18n="se.save">保存</button></div>
+</div>
+<div class="card">
+<div class="card-title" data-i18n="se.log">日志</div>
+<div class="field"><span class="label" data-i18n="se.logCap">保留条数</span><input id="se-logcap" type="number" min="50" max="2000"></div>
+<div class="btn-row" id="log-bar" hidden><button class="btn-outline" id="log-cancel" data-i18n="cancel">取消</button><button class="btn" id="log-save" data-i18n="se.save">保存</button></div>
+</div>
+<div class="card">
+<div class="card-title" data-i18n="se.others">其他</div>
+<button class="entry" id="se-about"><span data-i18n="se.about">关于 DDNS-RS</span><svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button>
+<button class="entry" id="se-donate"><span data-i18n="st.donate">支持开发</span><svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button>
+<button class="entry logout" id="se-logout" data-i18n="se.logout">退出登录</button>
+</div>
+</section>
+
+</main>
+<nav class="tabbar" id="tabbar">
+<button class="tab active" data-tab="status"><svg viewBox="0 0 24 24"><path d="M3 12h4l3 7 4-14 3 7h4"/></svg><span data-i18n="tab.status">状态</span></button>
+<button class="tab" data-tab="tasks"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10"/></svg><span data-i18n="tab.tasks">任务</span></button>
+<button class="tab" data-tab="settings"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="2.44"/><path d="M17.65 14.29a1.26 1.26 0 0 0 .25 1.39l.05.05a1.53 1.53 0 1 1-2.16 2.16l-.05-.05a1.26 1.26 0 0 0-1.39-.25 1.26 1.26 0 0 0-.76 1.15V18.87a1.53 1.53 0 1 1-3.05 0v-.07a1.26 1.26 0 0 0-.76-1.15 1.26 1.26 0 0 0-1.39.25l-.05.05a1.53 1.53 0 1 1-2.16-2.16l.05-.05a1.26 1.26 0 0 0 .25-1.39 1.26 1.26 0 0 0-1.15-.76H5.13a1.53 1.53 0 1 1 0-3.05h.07a1.26 1.26 0 0 0 1.15-.76 1.26 1.26 0 0 0-.25-1.39l-.05-.05a1.53 1.53 0 1 1 2.16-2.16l.05.05a1.26 1.26 0 0 0 1.39.25h.07a1.26 1.26 0 0 0 .76-1.15V5.13a1.53 1.53 0 1 1 3.05 0v.07a1.26 1.26 0 0 0 .76 1.15h.07a1.26 1.26 0 0 0 1.39-.25l.05-.05a1.53 1.53 0 1 1 2.16 2.16l-.05.05a1.26 1.26 0 0 0-.25 1.39v.07a1.26 1.26 0 0 0 1.15.76H18.87a1.53 1.53 0 1 1 0 3.05h-.07a1.26 1.26 0 0 0-1.15.76z"/></svg><span data-i18n="tab.settings">设置</span></button>
+</nav>
+
+<section id="page-edit" class="page">
+<div class="navbar">
+<button class="back" id="ed-back"><svg viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg><span data-i18n="ed.back">返回</span></button>
+<span class="nav-title" id="ed-title">编辑任务</span>
+</div>
+<div class="page-body">
+<div class="card">
+<div class="card-title" data-i18n="ed.provider">服务商</div>
+<div class="field"><span class="label" data-i18n="ed.type">类型</span><div class="seg" id="ed-pv-type">
+<button data-v="aliyun" data-i18n="pv.aliyun">阿里云</button>
+<button data-v="cloudflare">Cloudflare</button>
+<button data-v="aliesa" data-i18n="pv.aliesa">阿里云ESA</button>
+<button data-v="tencent" data-i18n="pv.tencent">腾讯云</button>
+<button data-v="dnspod">DNSPod</button>
+<button data-v="huawei" data-i18n="pv.huawei">华为云</button>
+<button data-v="callback">Callback</button>
+<button data-v="baidu" data-i18n="pv.baidu">百度云</button>
+<button data-v="volcengine" data-i18n="pv.volcengine">火山引擎</button>
+<button data-v="porkbun">Porkbun</button>
+<button data-v="godaddy">GoDaddy</button>
+<button data-v="namecheap">Namecheap</button>
+</div></div>
+<div id="ed-pv-cf" hidden>
+<div class="field-col"><span class="label">API Token</span><input id="ed-cf-token" type="password" placeholder="Cloudflare API Token"></div>
+<div class="field"><span class="label" data-i18n="ed.proxied">代理</span><span style="flex:1"></span><button id="ed-cf-proxied" class="mod-toggle"></button></div>
+</div>
+<div id="ed-pv-keys">
+<div class="field-col"><span class="label" id="ed-pv-ak-label">AccessKey ID</span><input id="ed-pv-ak"></div>
+<div class="field-col" id="ed-pv-sk-row"><span class="label" id="ed-pv-sk-label">AccessKey Secret</span><input id="ed-pv-sk"></div>
+</div>
+<div id="ed-pv-cb" hidden>
+<div class="field-col"><span class="label" data-i18n="pv.cbUrl">回调地址</span><input id="ed-cb-url" data-i18n-ph="pv.cbUrlPh" placeholder="https://..."></div>
+<div class="field-col"><span class="label" data-i18n="pv.cbBody">请求体（可选）</span><input id="ed-cb-body" data-i18n-ph="pv.cbBodyPh"></div>
+<div class="hint" data-i18n="pv.cbHint">支持变量 #{ip}、#{domain}、#{recordType}、#{ttl}、#{timestamp}；请求体留空走 GET，合法 JSON 以 application/json 发送，否则为表单编码</div>
+</div>
+</div>
+<div class="card">
+<div class="field"><span class="label" data-i18n="ed.name">名称</span><input id="ed-name" data-i18n-ph="ed.namePh" placeholder="备注名，便于识别"></div>
+<div class="field"><span class="label" data-i18n="ed.mode">触发模式</span><div class="seg" id="ed-mode">
+<button data-v="listen" id="ed-mode-listen" data-i18n="mode.listen">监听</button><button data-v="poll" data-i18n="mode.poll">轮询</button>
+</div></div>
+<div class="field" id="ed-interval-row"><span class="label" data-i18n="ed.interval">轮询间隔</span><input id="ed-interval" type="number" min="10" max="86400" placeholder="300"></div>
+<div class="field" id="ed-watch-row" hidden><span class="label" data-i18n="ed.watch">监听网口</span>
+<div class="chips" id="ed-watch"><div class="chips-list"></div><div class="chips-add"><input data-i18n-ph="ed.watchPh" placeholder="网口名或通配符，留空为全部"></div><div class="chips-drop" hidden></div></div>
+</div>
+<div class="hint" id="ed-mode-hint"></div>
+<div class="sep"></div>
+<div class="field"><span class="label" data-i18n="ed.zone">根域名</span><input id="ed-zone" placeholder="example.com"></div>
+<div class="field-col"><span class="label" data-i18n="ed.subs">子域名</span><textarea id="ed-subs" data-i18n-ph="ed.subsPh" placeholder="home, vpn（留空或 @ 表示根域名）"></textarea></div>
+<div class="field"><span class="label">TTL</span><select id="ed-ttl"></select></div>
+</div>
+
+<div class="card">
+<div class="card-title">IPv4</div>
+<div class="field"><span class="label" data-i18n="ed.enable">启用</span><span style="flex:1"></span><button id="ed-v4-en" class="mod-toggle"></button></div>
+<div class="src-list" id="ed-v4-src" data-fam="v4"></div>
+<div class="src-add"></div>
+<div class="hint" data-i18n="src.listHint">按序回退：前一来源取不到地址自动尝试下一个</div>
+</div>
+
+<div class="card">
+<div class="card-title">IPv6</div>
+<div class="field"><span class="label" data-i18n="ed.enable">启用</span><span style="flex:1"></span><button id="ed-v6-en" class="mod-toggle"></button></div>
+<div class="src-list" id="ed-v6-src" data-fam="v6"></div>
+<div class="src-add"></div>
+<div class="hint" data-i18n="src.listHint">按序回退：前一来源取不到地址自动尝试下一个</div>
+</div>
+
+<div class="bar"><button class="btn btn-block" id="ed-save" data-i18n="ed.save">保存</button></div>
+<button class="btn-outline btn-danger btn-block" id="ed-del" data-i18n="ed.delete">删除任务</button>
+</div>
+</section>
+
+<section id="page-about" class="page">
+<div class="navbar">
+<button class="back" id="about-back"><svg viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg><span data-i18n="ed.back">返回</span></button>
+<span class="nav-title" data-i18n="about.title">关于</span>
+</div>
+<div class="page-body">
+<div class="card hero">
+<div class="logo"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c4.5 4.5 4.5 13.5 0 18M12 3c-4.5 4.5-4.5 13.5 0 18"/></svg></div>
+<div class="name" id="about-name">DDNS-RS</div>
+<div class="ver" data-i18n="about.tagline">轻量动态域名解析服务</div>
+</div>
+<div class="card">
+<div class="card-title" data-i18n="about.usage">使用</div>
+<div class="text"><ol>
+<li data-i18n="about.u1">「任务」页新增任务：选择服务商并填入其密钥，填写域名即可</li>
+<li data-i18n="about.u2">地址变化后自动更新解析，无需手动干预</li>
+<li data-i18n="about.u3">「状态」页可查看各任务结果与运行日志</li>
+</ol></div>
+</div>
+<div class="card">
+<div class="card-title" data-i18n="about.author">作者</div>
+<div class="row"><span class="label" data-i18n="about.author">作者</span><span class="value">Suto</span></div>
+<div class="row"><span class="label" data-i18n="about.home">主页</span><a class="value mono" href="http://ddns-rs.suto.top" target="_blank" rel="noopener">http://ddns-rs.suto.top</a></div>
+</div>
+<div class="card">
+<div class="card-title" data-i18n="about.version">版本</div>
+<div class="row"><span class="label" data-i18n="about.version">版本</span><span class="value mono" id="ab-ver">-</span></div>
+</div>
+</div>
+</section>
+
+<section id="page-donate" class="page">
+<div class="navbar">
+<button class="back" id="donate-back"><svg viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg><span data-i18n="ed.back">返回</span></button>
+<span class="nav-title" data-i18n="donate.title">支持开发</span>
+</div>
+<div class="page-body">
+<div class="card hero">
+<div class="logo"><svg viewBox="0 0 24 24"><path d="M12 20.5s-7.5-4.6-9.4-9C1 7.6 3 4.5 6.2 4.5c2 0 3.6 1.1 4.4 2.7l1.4 2.4 1.4-2.4c.8-1.6 2.4-2.7 4.4-2.7 3.2 0 5.2 3.1 3.6 7-1.9 4.4-9.4 9-9.4 9z" fill="#fff" stroke="none"/></svg></div>
+<div class="name" data-i18n="donate.name">请作者喝杯咖啡</div>
+<div class="ver" data-i18n="donate.slogan">你的支持是 DDNS-RS 持续更新的动力</div>
+</div>
+<div class="card">
+<div class="card-title" data-i18n="donate.pay">付款方式</div>
+<div class="qrs">
+<div class="qr"><svg viewBox="0 0 41 41"><path fill="#fff" d="M0 0h41v41H0z"/><path stroke="#000" d="M4 4.5h7m2 0h2m1 0h1m1 0h1m3 0h2m3 0h1m2 0h7M4 5.5h1m5 0h1m2 0h3m3 0h1m2 0h1m1 0h2m2 0h1m1 0h1m5 0h1M4 6.5h1m1 0h3m1 0h1m1 0h1m2 0h1m2 0h2m4 0h3m3 0h1m1 0h3m1 0h1M4 7.5h1m1 0h3m1 0h1m1 0h4m6 0h2m1 0h1m1 0h1m2 0h1m1 0h3m1 0h1M4 8.5h1m1 0h3m1 0h1m1 0h1m3 0h1m1 0h4m2 0h1m2 0h2m1 0h1m1 0h3m1 0h1M4 9.5h1m5 0h1m1 0h4m1 0h2m2 0h1m1 0h1m1 0h1m2 0h1m1 0h1m5 0h1M4 10.5h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7M12 11.5h1m7 0h1m2 0h4m1 0h1M4 12.5h1m1 0h5m6 0h2m1 0h2m1 0h1m2 0h1m1 0h1m1 0h5M4 13.5h1m1 0h1m1 0h2m6 0h2m3 0h1m1 0h2m1 0h2m2 0h2m1 0h2m1 0h1M4 14.5h5m1 0h3m1 0h1m1 0h4m1 0h1m2 0h1m1 0h1m2 0h1m2 0h1m1 0h2M7 15.5h2m3 0h2m1 0h1m1 0h1m2 0h5m3 0h2m2 0h4M4 16.5h1m1 0h7m1 0h1m3 0h3m2 0h4m2 0h1m2 0h2m1 0h1M6 17.5h1m1 0h2m1 0h1m2 0h2m1 0h1m1 0h1m2 0h1m2 0h1m1 0h2m1 0h1m2 0h1m1 0h2M4 18.5h1m1 0h2m1 0h3m3 0h1m3 0h2m3 0h2m2 0h3m3 0h2M4 19.5h2m2 0h1m2 0h1m4 0h4m2 0h1m2 0h1m1 0h5m1 0h2M7 20.5h2m1 0h1m1 0h1m6 0h3m4 0h4m1 0h2m3 0h1M8 21.5h2m2 0h4m1 0h1m5 0h3m1 0h1m1 0h3m1 0h4M5 22.5h2m3 0h2m6 0h3m1 0h1m1 0h2m2 0h2m1 0h2m1 0h2M4 23.5h2m1 0h2m3 0h1m2 0h2m1 0h2m3 0h1m1 0h3m1 0h6m1 0h1M5 24.5h1m2 0h1m1 0h2m1 0h2m1 0h3m3 0h1m2 0h1m1 0h3m2 0h2m2 0h1M4 25.5h2m5 0h1m3 0h1m3 0h2m3 0h4m1 0h3m1 0h2m1 0h1M4 26.5h1m5 0h1m3 0h1m1 0h1m1 0h1m2 0h3m1 0h1m2 0h1m2 0h5M4 27.5h1m1 0h2m1 0h1m4 0h1m2 0h1m2 0h1m2 0h4m1 0h2m1 0h5M4 28.5h1m1 0h2m2 0h5m3 0h1m1 0h2m1 0h1m2 0h7m2 0h2M12 29.5h1m1 0h4m3 0h1m1 0h2m1 0h1m1 0h1m3 0h1m1 0h3M4 30.5h7m4 0h1m1 0h5m4 0h3m1 0h1m1 0h1m1 0h2M4 31.5h1m5 0h1m1 0h1m1 0h1m1 0h2m1 0h1m1 0h4m3 0h1m3 0h3m1 0h1M4 32.5h1m1 0h3m1 0h1m1 0h1m3 0h1m1 0h3m2 0h4m1 0h6m1 0h2M4 33.5h1m1 0h3m1 0h1m1 0h4m2 0h2m1 0h2m6 0h1m2 0h2m2 0h1M4 34.5h1m1 0h3m1 0h1m1 0h3m1 0h1m2 0h2m1 0h1m1 0h2m2 0h4m2 0h1M4 35.5h1m5 0h1m4 0h5m2 0h1m2 0h2m2 0h1m2 0h3M4 36.5h7m1 0h1m1 0h1m3 0h5m4 0h2m1 0h2m3 0h1"/></svg><button class="btn" id="donate-ali">打开支付宝</button></div>
+<div class="qr"><svg viewBox="0 0 45 45"><path fill="#fff" d="M0 0h45v45H0z"/><path stroke="#000" d="M4 4.5h7m1 0h1m1 0h2m1 0h3m1 0h1m1 0h3m2 0h3m3 0h7M4 5.5h1m5 0h1m1 0h2m1 0h1m1 0h2m1 0h4m4 0h3m3 0h1m5 0h1M4 6.5h1m1 0h3m1 0h1m1 0h1m1 0h2m2 0h2m2 0h2m1 0h1m1 0h1m1 0h3m2 0h1m1 0h3m1 0h1M4 7.5h1m1 0h3m1 0h1m2 0h1m1 0h4m1 0h1m7 0h3m1 0h1m1 0h1m1 0h3m1 0h1M4 8.5h1m1 0h3m1 0h1m1 0h2m1 0h2m1 0h1m1 0h1m2 0h1m1 0h2m2 0h1m1 0h2m1 0h1m1 0h3m1 0h1M4 9.5h1m5 0h1m2 0h3m1 0h1m6 0h4m2 0h1m1 0h1m1 0h1m5 0h1M4 10.5h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7M13 11.5h1m1 0h2m1 0h5m3 0h1m1 0h4M4 12.5h1m2 0h8m1 0h2m5 0h1m1 0h1m1 0h1m1 0h5m2 0h1m1 0h3M5 13.5h5m1 0h2m2 0h1m4 0h1m1 0h1m7 0h1m2 0h1m1 0h5M10 14.5h2m3 0h1m1 0h5m1 0h2m2 0h1m1 0h1m1 0h1m2 0h1m1 0h1m1 0h1m1 0h1M4 15.5h1m2 0h1m1 0h1m4 0h1m1 0h1m1 0h1m1 0h5m2 0h2m3 0h2m2 0h5M6 16.5h3m1 0h2m1 0h5m1 0h2m3 0h2m1 0h1m4 0h4m1 0h3M7 17.5h1m3 0h3m1 0h2m3 0h1m1 0h2m3 0h7m2 0h1m2 0h1M5 18.5h1m2 0h1m1 0h4m3 0h1m1 0h1m2 0h3m1 0h1m1 0h1m1 0h3m1 0h7M4 19.5h1m4 0h1m3 0h3m1 0h3m3 0h1m3 0h2m5 0h1m1 0h1m1 0h1m1 0h1M5 20.5h1m1 0h1m2 0h3m3 0h3m2 0h4m3 0h1m2 0h1m2 0h2m2 0h1m1 0h1M4 21.5h5m2 0h2m1 0h1m1 0h1m4 0h1m7 0h3m1 0h1m1 0h1m1 0h2M6 22.5h2m2 0h2m3 0h4m1 0h1m2 0h1m3 0h2m1 0h2m1 0h2m1 0h1m3 0h1M4 23.5h3m1 0h2m1 0h1m1 0h2m2 0h1m1 0h2m6 0h3m1 0h2m1 0h4m1 0h1M4 24.5h1m2 0h2m1 0h1m3 0h2m1 0h2m1 0h2m1 0h1m1 0h1m7 0h2m1 0h2m1 0h2M6 25.5h3m2 0h1m2 0h4m3 0h3m7 0h1m2 0h1m1 0h1m2 0h1M7 26.5h2m1 0h6m3 0h2m3 0h1m1 0h4m1 0h1m2 0h1m2 0h2m1 0h1M5 27.5h1m1 0h2m2 0h1m1 0h2m1 0h1m3 0h1m1 0h3m3 0h1m2 0h1m2 0h2m2 0h1m1 0h1M5 28.5h1m1 0h1m2 0h1m1 0h1m1 0h6m1 0h1m3 0h1m1 0h1m2 0h3m1 0h2m1 0h1m1 0h1M4 29.5h1m1 0h1m2 0h1m1 0h3m2 0h2m4 0h1m1 0h3m2 0h2m1 0h1m1 0h1m1 0h4M4 30.5h2m1 0h1m1 0h2m1 0h2m1 0h1m2 0h2m1 0h4m3 0h1m2 0h2m1 0h1m1 0h1m2 0h2M4 31.5h1m4 0h1m1 0h5m1 0h1m2 0h1m1 0h1m4 0h2m2 0h1m1 0h1m1 0h1m2 0h1M4 32.5h1m1 0h1m1 0h1m1 0h1m2 0h1m2 0h1m2 0h1m4 0h5m2 0h6m1 0h2M12 33.5h1m1 0h2m1 0h1m1 0h1m1 0h2m1 0h1m1 0h1m2 0h4m3 0h2m2 0h1M4 34.5h7m1 0h1m1 0h1m2 0h9m1 0h1m1 0h1m1 0h2m1 0h1m1 0h1m3 0h1M4 35.5h1m5 0h1m1 0h4m1 0h1m5 0h1m2 0h1m1 0h2m1 0h2m3 0h1m3 0h1M4 36.5h1m1 0h3m1 0h1m1 0h1m2 0h3m1 0h2m1 0h3m2 0h1m3 0h7m1 0h1M4 37.5h1m1 0h3m1 0h1m1 0h3m10 0h1m5 0h4m3 0h1m1 0h1M4 38.5h1m1 0h3m1 0h1m4 0h1m1 0h1m4 0h1m3 0h2m2 0h4m1 0h4m1 0h1M4 39.5h1m5 0h1m2 0h3m2 0h2m1 0h4m1 0h3m1 0h2m1 0h8M4 40.5h7m1 0h1m1 0h3m1 0h1m3 0h3m2 0h1m2 0h1m1 0h2m3 0h2m1 0h1"/></svg><button class="btn btn-wx" disabled>微信扫一扫</button></div>
+</div>
+</div>
+</div>
+</section>
+</div>
+
+<div id="modal-title" class="modal-bg" hidden>
+<div class="modal">
+<h3 data-i18n="se.title">网站标题</h3>
+<input id="se-title-input" data-i18n-ph="se.titlePh" placeholder="网站名称">
+<div class="modal-actions">
+<button class="btn-outline" data-close data-i18n="cancel">取消</button>
+<button id="se-title-ok" class="btn" data-i18n="confirm">确认</button>
+</div>
+</div>
+</div>
+
+<div id="modal-pw" class="modal-bg" hidden>
+<div class="modal">
+<h3 data-i18n="pw.title">修改密码</h3>
+<input type="password" id="pw-old" data-i18n-ph="pw.old" placeholder="原密码">
+<input type="password" id="pw-new" data-i18n-ph="pw.new" placeholder="新密码（至少 8 位）">
+<input type="password" id="pw-new2" data-i18n-ph="pw.new2" placeholder="确认新密码">
+<div class="modal-actions">
+<button class="btn-outline" data-close data-i18n="cancel">取消</button>
+<button id="pw-ok" class="btn" data-i18n="confirm">确认</button>
+</div>
+</div>
+</div>
+
+<div id="modal-confirm" class="modal-bg" hidden>
+<div class="modal">
+<h3 id="modal-confirm-title">确认</h3>
+<p id="modal-confirm-msg" class="confirm-msg"></p>
+<div class="modal-actions">
+<button class="btn-outline" data-close data-i18n="cancel">取消</button>
+<button id="modal-confirm-ok" class="btn" style="background:var(--red)" data-i18n="confirm">确认</button>
+</div>
+</div>
+</div>
+
+<div id="toast"></div>
+<script src="/index.js"></script>
+</body>
+</html>

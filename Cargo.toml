@@ -1,0 +1,36 @@
+[package]
+name = "ddns-rs"
+version = "0.1.9"
+edition = "2024"
+description = "轻量动态域名解析（DDNS）服务"
+license = "MIT"
+
+[dependencies]
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "net", "time", "signal", "process", "sync", "fs", "io-util"] }
+tokio-util = "0.7"
+axum = "0.8"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+reqwest = { version = "0.12", default-features = false, features = ["rustls-tls", "json"] }
+thiserror = "2"
+clap = { version = "4", features = ["derive"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+argon2 = "0.5"
+hmac = "0.12"
+sha1 = "0.10"
+sha2 = "0.10"
+base64 = "0.22"
+getrandom = "0.2"
+async-trait = "0.1"
+idna = "1"
+psl = "2"
+
+[target.'cfg(unix)'.dependencies]
+libc = "0.2"
+
+[profile.release]
+opt-level = 2
+lto = true
+codegen-units = 1
+strip = true
