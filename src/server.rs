@@ -28,7 +28,7 @@ pub struct AppState {
     /// 改密后整体轮换，旧令牌全部失效
     mk: Arc<RwLock<MasterKey>>,
     fail: Arc<FailTrack>,
-    /// 保存配置整体串行：绑定、落盘、递交监听严格同序
+    /// 保存配置整体串行
     set: Arc<Mutex<()>>,
     /// 换端口递交已绑定的新监听，队列无界避免停机互锁
     rebind: mpsc::UnboundedSender<Vec<TcpListener>>,
@@ -37,7 +37,6 @@ pub struct AppState {
 enum Ev {
     Stop,
     Rebind(Vec<TcpListener>),
-    /// 监听任务未被要求退出却结束
     Lost(std::result::Result<std::io::Result<()>, JoinError>),
 }
 
@@ -69,7 +68,7 @@ pub async fn serve(cfg: Arc<ConfigStore>, engine: Arc<Engine>) -> Result<()> {
             Some(l) = rx.recv() => Ev::Rebind(l),
             Some(r) = set.join_next() => Ev::Lost(r),
         };
-        // 新端口已绑定，收尾期间新连接在 backlog 排队；监听异常在此一并暴露
+        // 新端口已绑定，收尾期间新连接在 backlog 排队
         quit.cancel();
         while let Some(r) = set.join_next().await {
             serve_check(r)?;
@@ -94,7 +93,7 @@ fn serve_check(r: std::result::Result<std::io::Result<()>, JoinError>) -> Result
     }
 }
 
-/// 一组监听共用退出令牌，任一任务结束即随 JoinSet 一并收拢
+/// 一组监听共用退出令牌，随 JoinSet 一并收拢
 fn spawn_serve(
     listeners: Vec<TcpListener>,
     app: Router,
@@ -383,9 +382,9 @@ async fn set_config(
     State(st): State<AppState>,
     Json(mut cfg): Json<Config>,
 ) -> Result<Json<Config>> {
-    // 先校验后绑定：绑定是副作用，非法配置不得触达套接字
+    // 先校验后绑定，非法配置不得触达套接字
     cfg.validate()?;
-    // 绑定、落盘、递交监听同锁串行，防并发保存时最终监听与配置端口倒置
+    // 同锁串行防并发保存时监听与配置端口倒置
     let _g = st.set.lock().await;
     // 换端口先持新监听再提交：真实绑定即就绪保证，失败则零变更
     let held = if cfg.port != st.cfg.get().await.port {
