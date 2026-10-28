@@ -135,7 +135,7 @@ impl Entry {
     }
 }
 
-/// IDN 转 punycode（服务商 API 仅接受 ASCII）
+/// IDN 转 punycode 线上字形
 pub fn to_punycode(s: &str) -> String {
     idna::domain_to_ascii(s).unwrap_or_else(|_| s.to_string())
 }
@@ -478,7 +478,7 @@ impl ConfigStore {
         })
     }
 
-    /// 唯一写入门：口令以落盘为准，非法配置不触达套接字
+    /// 唯一写入门，非法配置不触达套接字
     pub async fn replace(&self, mut next: Config) -> Result<bool> {
         let _g = self.lock.lock().await;
         next.pwd_hash = self.pwd_hash().await?;
@@ -505,7 +505,7 @@ impl ConfigStore {
         Ok(())
     }
 
-    /// 落盘成功才提交内存，entries 变化才递增 revision
+    /// 落盘成功才提交内存
     async fn commit(&self, next: Config) -> Result<bool> {
         let changed = self.get().await.entries != next.entries;
         write_json(self.path.clone(), &next).await?;
@@ -517,7 +517,7 @@ impl ConfigStore {
     }
 }
 
-/// 文件缺失返回 None，剥离 BOM；解析失败拒绝静默重建，须人工修复
+/// 文件缺失返回 None，剥离 BOM；解析失败拒绝静默重建
 async fn read_json<T: DeserializeOwned>(path: &Path) -> Result<Option<T>> {
     let text = match tokio::fs::read_to_string(path).await {
         Ok(t) => t,
