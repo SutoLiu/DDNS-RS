@@ -44,7 +44,7 @@ pub fn pe(s: &str) -> String {
     out
 }
 
-/// UTC 时刻（2015-01-09T12:00:00Z），阿里云/百度云签名用
+/// UTC 时刻（2025-01-09T12:00:00Z），阿里云/百度云签名用
 pub fn utc_now() -> String {
     let secs = crate::now_secs() as i64;
     let rem = secs.rem_euclid(86_400);
