@@ -33,7 +33,7 @@ pub fn iface_addr(list: &[Iface], pats: &[String], kind: RecordKind) -> Option<I
     })
 }
 
-/// 轮内取址上下文：网卡快照同轮共享，同源只执行一次（未命中亦缓存）
+/// 同轮共享网卡快照，同源只执行一次（未命中亦缓存）
 pub struct Resolver<'a> {
     ifaces: &'a [Iface],
     cache: HashMap<(Source, RecordKind), Option<IpAddr>>,
