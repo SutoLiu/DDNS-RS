@@ -8,6 +8,12 @@ use crate::error::Result;
 const ENDPOINT: &str = "https://alidns.aliyuncs.com/";
 const VERSION: &str = "2015-01-09";
 
+/// 阿里云拒收 punycode 参数
+fn to_unicode(s: &str) -> String {
+    let (out, ok) = idna::domain_to_unicode(s);
+    ok.map(|_| out).unwrap_or_else(|_| s.to_string())
+}
+
 pub struct Aliyun {
     client: reqwest::Client,
     ak: String,
@@ -35,24 +41,21 @@ impl Aliyun {
 #[async_trait]
 impl Provider for Aliyun {
     async fn upsert(&self, r: &Upsert<'_>) -> Result<()> {
+        let (zone, sub, fqdn) = (to_unicode(r.zone), to_unicode(r.sub), to_unicode(r.fqdn));
         let ttl = if r.ttl == 0 { 600 } else { r.ttl };
         let kind = r.kind.as_str().to_string();
-        let rr = if r.sub.is_empty() || r.sub == "@" {
+        let rr = if sub.is_empty() || sub == "@" {
             "@".to_string()
         } else {
-            r.sub.to_string()
+            sub
         };
         // 根域名的记录在阿里云以 "@.zone" 形式查询
-        let sub_domain = if rr == "@" {
-            format!("@.{}", r.zone)
-        } else {
-            r.fqdn.to_string()
-        };
+        let sub_domain = if rr == "@" { format!("@.{zone}") } else { fqdn };
         let found = self
             .call(
                 "DescribeSubDomainRecords",
                 &[
-                    ("DomainName", r.zone.to_string()),
+                    ("DomainName", zone.clone()),
                     ("SubDomain", sub_domain),
                     ("Type", kind.clone()),
                 ],
@@ -87,7 +90,7 @@ impl Provider for Aliyun {
                 .call(
                     "AddDomainRecord",
                     &[
-                        ("DomainName", r.zone.to_string()),
+                        ("DomainName", zone),
                         ("RR", rr),
                         ("Type", kind),
                         ("Value", r.ip.to_string()),
