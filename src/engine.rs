@@ -128,7 +128,7 @@ pub struct Engine {
     listen_ok: AtomicBool,
     monitor: tokio::sync::Mutex<MonitorSlot>,
     client: reqwest::Client,
-    /// 回显客户端：禁代理并按地址族绑定出口，防代理污染
+    /// 禁代理并按地址族绑定出口，防代理污染
     echo: [reqwest::Client; 2],
 }
 
@@ -150,7 +150,7 @@ fn echo_client(local: IpAddr) -> reqwest::Client {
         .expect("构建回显客户端失败")
 }
 
-/// 与上轮快照比对出增删改网口名并滚动快照，供 watch 过滤
+/// 滚动快照并返回增删改网口名，供 watch 过滤
 fn iface_changed(snap: &mut Vec<Iface>, cur: &[Iface]) -> Vec<String> {
     let hit = cur
         .iter()
