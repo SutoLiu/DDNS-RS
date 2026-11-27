@@ -6,7 +6,7 @@
 #### 软件架构
 - **双触发模式**：「监听」（本机地址变化事件即时触发：Linux/Android 走 netlink，Windows 走 `NotifyUnicastIpAddressChange`；平台不支持或事件源失效时自动降级为轮询并隐藏该选项）或「轮询」（10–86400 秒自定义间隔）；监听模式支持网口过滤（fnmatch 风格通配符，仅指定网口的地址变化才触发）。
 - **多来源取址**：公网回显接口、本机网卡（支持 fnmatch 风格通配符）、自定义命令（超 20 秒自动终止）三类来源可混合多块按序回退，逐块取首命中；从回显文本抓取地址按地址族文法切词，支持 IPv6 内嵌 IPv4 写法与句读包裹，IPv4-mapped 地址归 IPv4 族不写入 AAAA。
-- **多家服务商**：阿里云 DNS、阿里云 ESA、腾讯云（API 3.0）、DNSPod（旧 API）、华为云、百度云、火山引擎、Cloudflare、Porkbun、GoDaddy、Namecheap、Callback 自定义回调；`trait` 抽象。
+- **多家服务商**：阿里云 DNS、阿里云 ESA、腾讯云（API 3.0）、DNSPod（旧 API）、华为云、百度云、火山引擎、Cloudflare、Porkbun、GoDaddy、Namecheap、dynv6、Callback 自定义回调；`trait` 抽象。
 - **Web 控制台**：卡片风格，任务增删改查、实时状态与日志、手动触发；简体中文 / 繁體中文 / English 三语切换。
 - **单密码鉴权**：首次使用引导设置密码（仅接受本机/局域网来源，防公网抢占），Argon2id 散列 + HMAC 会话令牌 + 密码校验失败限速（同源连续失败 5 次锁定 5 分钟）；令牌默认 30 分钟滑动过期（`token_ttl` 可改），有操作自动续期、无操作到期自动退出。
 - **可选禁止公网访问**：开启后仅本机与局域网来源可访问全部路由（含静态资源），不信任 `X-Forwarded-For` 等请求头。
@@ -80,4 +80,5 @@
 | `porkbun` | `apikey`、`secretapikey` | 根域名子域以空串表示 |
 | `godaddy` | `key`、`secret` | PUT 直接替换该主机名下同类型全部记录 |
 | `namecheap` | `password` | 动态 DNS 密码，仅 IPv4 |
+| `dynv6` | `token` | dynv6.com HTTP Token，zone 传完整主机名；同时支持 IPv4 / IPv6 |
 | `cloudflare` | `token`、`proxied` | Zone ID 带缓存，凭据不变期间不重复查询 |

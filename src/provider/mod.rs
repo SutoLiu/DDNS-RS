@@ -4,6 +4,7 @@ mod baidu;
 pub mod callback;
 mod cloudflare;
 mod dnspod;
+pub mod dynv6;
 mod godaddy;
 mod huawei;
 mod namecheap;
@@ -86,6 +87,7 @@ pub fn build(cfg: &ProviderCfg, client: reqwest::Client) -> Box<dyn Provider> {
         ProviderCfg::Namecheap { password } => {
             Box::new(namecheap::Namecheap::new(client, t(password)))
         }
+        ProviderCfg::Dynv6 { token } => Box::new(dynv6::Dynv6::new(client, t(token))),
         ProviderCfg::Callback { url, body } => {
             Box::new(callback::Callback::new(client, t(url), t(body)))
         }

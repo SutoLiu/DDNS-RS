@@ -83,6 +83,7 @@ fn provider_variants_roundtrip_and_check_credentials() {
         r#"{"type":"porkbun","apikey":"a","secretapikey":"b"}"#,
         r#"{"type":"godaddy","key":"a","secret":"b"}"#,
         r#"{"type":"namecheap","password":"p"}"#,
+        r#"{"type":"dynv6","token":"t"}"#,
         r#"{"type":"callback","url":"https://x"}"#,
     ];
     for s in samples {
@@ -106,6 +107,7 @@ fn provider_variants_roundtrip_and_check_credentials() {
         r#"{"type":"porkbun","apikey":"","secretapikey":"b"}"#,
         r#"{"type":"godaddy","key":"","secret":""}"#,
         r#"{"type":"namecheap","password":" "}"#,
+        r#"{"type":"dynv6","token":" "}"#,
         r#"{"type":"callback","url":""}"#,
     ];
     for s in blanks {
@@ -184,6 +186,23 @@ fn namecheap_rejects_ipv6() {
         err.contains("Namecheap"),
         "应命中 Namecheap IPv6 拦截: {err}"
     );
+}
+
+#[test]
+fn dynv6_supports_ipv6_and_checks_token() {
+    let mut e = entry("example.com", "home");
+    e.provider = Provider::Dynv6 { token: "t".into() };
+    assert!(e.validate().is_ok());
+    e.ipv6 = Family {
+        enabled: true,
+        sources: vec![Source::Url {
+            url: vec!["https://ipv6.icanhazip.com".into()],
+        }],
+    };
+    assert!(e.validate().is_ok(), "dynv6 应同时支持 IPv6");
+    e.provider = Provider::Dynv6 { token: " ".into() };
+    let err = e.validate().unwrap_err().to_string();
+    assert!(err.contains("HTTP Token"), "{err}");
 }
 
 #[test]
