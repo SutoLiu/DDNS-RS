@@ -631,6 +631,7 @@ const PV_AK={
   porkbun:{l:['API Key','Secret API Key'],k:['apikey','secretapikey'],s:[true,true]},
   godaddy:{l:['Key','Secret'],k:['key','secret'],s:[false,true]},
   namecheap:{l:['Dynamic DNS Password'],k:['password'],s:[true]},
+  dynv6:{l:['HTTP Token'],k:['token'],s:[true]},
 };
 
 function paintProvider(){

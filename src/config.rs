@@ -216,6 +216,9 @@ pub enum Provider {
     Namecheap {
         password: String,
     },
+    Dynv6 {
+        token: String,
+    },
     Callback {
         url: String,
         #[serde(default)]
@@ -246,6 +249,7 @@ impl Provider {
             Provider::Porkbun { .. } => "porkbun",
             Provider::Godaddy { .. } => "godaddy",
             Provider::Namecheap { .. } => "namecheap",
+            Provider::Dynv6 { .. } => "dynv6",
             Provider::Callback { .. } => "callback",
         }
     }
@@ -263,6 +267,7 @@ impl Provider {
             Provider::Porkbun { .. } => "Porkbun",
             Provider::Godaddy { .. } => "GoDaddy",
             Provider::Namecheap { .. } => "Namecheap",
+            Provider::Dynv6 { .. } => "dynv6",
             Provider::Callback { .. } => "Callback",
         }
     }
@@ -331,6 +336,7 @@ impl Provider {
                 need(secret, "Secret");
             }
             Self::Namecheap { password } => need(password, "Dynamic DNS Password"),
+            Self::Dynv6 { token } => need(token, "HTTP Token"),
             Self::Callback { url, .. } => need(url, "URL"),
         }
         miss
